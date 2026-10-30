@@ -1,0 +1,18 @@
+{# Ready-made for Phase 2. Do not change it.
+Needs only current, previous, current_headline and previous_headline. #}
+{% macro direction(now, before) -%}{% if now > before %}▲{% elif now < before %}▼{% else %}▬{% endif %}{%- endmacro %}
+<section class="mb-4" aria-label="Economy summary">
+  <div class="row g-2">
+  {% for name, label, now, before in [
+    ("rate", "🏦 Policy rate", current.rate, previous.rate),
+    ("inflation", "📊 Inflation", current_headline, previous_headline),
+    ("unemployment", "👷 Unemployment", current.unemployment, previous.unemployment),
+    ("gap", "Output gap", current.gap, previous.gap)] %}
+    <div class="col-6 col-md-3"><div class="border rounded p-3 h-100">
+      <h2 class="h6">{{ label }}</h2>
+      <strong class="fs-4">{{ "%.2f" | format(now) }}%</strong>
+      <span aria-label="change since last quarter">{{ direction(now, before) }}</span>
+    </div></div>
+  {% endfor %}
+  </div>
+</section>

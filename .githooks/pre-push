@@ -1,0 +1,63 @@
+#!/bin/sh
+# Guards for the course repository, during private development and release.
+# Enable with:  git config core.hooksPath .githooks
+#
+# 1. Refuse if a secret or tooling path ever entered any local history.
+# 2. Refuse if a key-like string was ever added to any file in any local
+#    history — including a file whose name the path check allows, and including
+#    one deleted again afterwards. The old commit stays reachable, so a push
+#    publishes it.
+# 3. Refuse any ref other than main, which defeats --all and --mirror and keeps
+#    local authoring branches from being published.
+#
+# PATHS and SECRETS are duplicated from .githooks/pre-commit and must stay
+# identical to it. pre-commit is the first line and can be bypassed with
+# --no-verify; this is the last one, and it looks at history rather than at
+# what is being committed now.
+
+PATHS='(^|/)\.env($|\.)|\.(key|pem)$|^\.agents/|^\.claude/|(^|/)\.opencode/'
+SECRETS='sk-or-v1-[A-Za-z0-9_-]{16}|sk-[A-Za-z0-9]{32}|gh[pousr]_[A-Za-z0-9]{20}|AKIA[0-9A-Z]{16}'
+
+block() {
+  echo "" >&2
+  echo "BLOCKED: $1" >&2
+  shift
+  printf '%s\n' "$@" | sed 's/^/  /' >&2
+  echo "" >&2
+  echo "Pushing would publish it permanently, and deleting it in a later commit" >&2
+  echo "does not help — the old commit is still there. Do not force past this." >&2
+  echo "Rewrite the history, and rotate the key if it is real." >&2
+  exit 1
+}
+
+HITS=$(git log --all --diff-filter=A --name-only --pretty=format: 2>/dev/null \
+       | sort -u | grep -E "$PATHS" || true)
+if [ -n "$HITS" ]; then
+  block "a secret or tooling path exists in this repository's history:" "$HITS"
+fi
+
+KEYS=$(git log --all -p --unified=0 --pretty=format: 2>/dev/null \
+       | grep -E '^\+' | grep -Eo "$SECRETS" | sort -u || true)
+if [ -n "$KEYS" ]; then
+  block "a key-like string exists in this repository's history:" \
+        "$(printf '%s' "$KEYS" | cut -c1-16 | sed 's/$/…/')"
+fi
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [ -z "$remote_ref" ] && continue
+  case "$remote_ref" in
+    refs/heads/main) ;;
+    *)
+      echo "" >&2
+      echo "BLOCKED: only refs/heads/main may be pushed." >&2
+      echo "  attempted: $remote_ref" >&2
+      echo "" >&2
+      echo "Work in progress stays on main. Before the repository is published," >&2
+      echo "its development history is archived and it starts again from one" >&2
+      echo "clean initial commit." >&2
+      exit 1
+      ;;
+  esac
+done
+
+exit 0

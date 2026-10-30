@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{% if history|length == 10 %}The economy you inherited · 2025-Q4{% else %}Your economy · {{ current.label }}{% endif %}</h1>
+{% include "_summary.html" %}
+{% include "_prices.html" %}
+{% include "_people.html" %}
+<div class="table-responsive" tabindex="0" role="region" aria-label="Policy record table">
+<table class="table table-sm align-middle economy-record">
+  <thead><tr><th>Quarter</th><th>Policy rate %</th><th>📊 Inflation %</th><th>🧺 Core inflation %</th><th>🍞 Food %</th><th>⛽ Fuel %</th><th>💡 Energy %</th><th>👷 Unemployment %</th><th>Output gap %</th></tr></thead>
+  <tbody>
+  {% for quarter in history %}
+  <tr{% if headline(quarter) > 2.50 or headline(quarter) < 1.50 %} class="table-warning"{% endif %}>
+    <td data-label="Quarter">{{ quarter.label }}</td><td data-label="Policy rate %">{{ "%.2f" | format(quarter.rate) }}</td><td data-label="📊 Inflation %">{{ "%.2f" | format(headline(quarter)) }}</td><td data-label="🧺 Core inflation %" style="color: #475569">{{ "%.2f" | format(quarter.core) }}</td><td data-label="🍞 Food %" style="color: #9a6700">{{ "%.2f" | format(quarter.food) }}</td><td data-label="⛽ Fuel %" style="color: #b4232a">{{ "%.2f" | format(quarter.fuel) }}</td><td data-label="💡 Energy %" style="color: #856600">{{ "%.2f" | format(quarter.energy) }}</td><td data-label="👷 Unemployment %">{{ "%.2f" | format(quarter.unemployment) }}</td><td data-label="Output gap %">{{ "%.2f" | format(quarter.gap) }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% include "_legend.html" %}
+{% endblock %}

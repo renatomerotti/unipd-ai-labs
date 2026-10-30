@@ -1,0 +1,22 @@
+# Copy this into your own project as .gitignore
+
+# Secrets — never commit these
+.env
+.env.*
+*.key
+*.pem
+
+# macOS
+.DS_Store
+
+# Python
+uv.lock
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+
+# Editor and tooling
+.claude
+.agents
+.opencode/

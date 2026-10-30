@@ -1,0 +1,7 @@
+{# Ready-made for Phase 2. Do not change it. Needs current, term_start_population. #}
+<section class="border rounded p-3 mb-4" aria-label="People and population">
+  <h2 class="h4">👥 Population <strong>{{ "{:,}".format(current.population) }}</strong></h2>
+  <p class="{{ 'text-success' if current.migration >= 0 else 'text-danger' }}">{% if current.migration >= 0 %}✈️ {{ "{:,}".format(current.migration) }} arrived{% else %}🧳 {{ "{:,}".format(-current.migration) }} left{% endif %} this quarter.</p>
+  {% set change = current.population - term_start_population %}
+  <p class="mb-0 {{ 'text-success' if change >= 0 else 'text-danger' }}">Since you took over: {{ "{:+,}".format(change) }} people. Population is shown, not scored.</p>
+</section>

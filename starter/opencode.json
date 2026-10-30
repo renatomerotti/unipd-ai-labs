@@ -1,0 +1,16 @@
+{
+  "model": "opencode/deepseek-v4.1-flash-free",
+  "permissions": [
+    { "action": "external_directory", "resource": "*", "effect": "deny" },
+    { "action": "shell", "resource": "*stop.py*", "effect": "deny" },
+    { "action": "shell", "resource": "*pkill *", "effect": "deny" },
+    { "action": "shell", "resource": "*kill *", "effect": "deny" },
+    { "action": "shell", "resource": "*killall*", "effect": "deny" },
+    { "action": "shell", "resource": "*xargs kill*", "effect": "deny" },
+    { "action": "shell", "resource": "*uv run app.py*", "effect": "deny" },
+    { "action": "shell", "resource": "*uvicorn*", "effect": "deny" },
+    { "action": "shell", "resource": "*python* app.py*", "effect": "deny" },
+    { "action": "shell", "resource": "*curl *", "effect": "deny" },
+    { "action": "edit", "resource": "opencode.json", "effect": "deny" }
+  ]
+}

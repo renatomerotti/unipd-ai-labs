@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Briefing · Central Bank Game{% endblock %}
+{% block content %}
+<h1>You are the central bank of a country.</h1>
+<p class="lead">A food and energy surge has lifted prices. Bring inflation back to the 2% target without wrecking employment.</p>
+<p>Before you, the policy rate was held at 2.00% for ten quarters.</p>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3"><div class="border rounded p-3">📊 Inflation<strong class="d-block fs-3">4.29%</strong></div></div>
+  <div class="col-6 col-lg-3"><div class="border rounded p-3">🧺 Core inflation<strong class="d-block fs-3">3.10%</strong></div></div>
+  <div class="col-6 col-lg-3"><div class="border rounded p-3">👷 Unemployment<strong class="d-block fs-3">4.22%</strong></div></div>
+  <div class="col-6 col-lg-3"><div class="border rounded p-3">👥 Population<strong class="d-block fs-3">10,000,000</strong></div></div>
+</div>
+<p>🧳 25,800 people left last quarter.</p>
+<p>The policy rate is the interest rate the central bank sets. The economy responds with a delay: each decision affects the quarter after the one where it is recorded.</p>
+<a class="btn btn-primary" href="/economy">See the economy you inherited</a>
+{% endblock %}

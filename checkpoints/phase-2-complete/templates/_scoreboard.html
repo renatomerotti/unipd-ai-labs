@@ -1,0 +1,146 @@
+{# Ready-made for Phase 4. Do not change it.
+   Include it with {% include "_scoreboard.html" %}, above the chart. It needs
+   six values: history, rule_history, player_score, rule_score, term and headline. #}
+{% macro shoppers(inflation) -%}
+  {%- if inflation > 3.5 %}🥵|Prices soaring
+  {%- elif inflation > 2.5 %}😐|Prices rising
+  {%- elif inflation >= 1.5 %}😀|Prices steady
+  {%- elif inflation >= 0.5 %}🥶|Prices sluggish
+  {%- else %}🥶|Prices stalling{% endif -%}
+{%- endmacro %}
+{% macro workers(unemployment) -%}
+  {%- if unemployment <= 4.5 %}😀|Jobs plentiful
+  {%- elif unemployment <= 5.5 %}😐|Jobs harder to find
+  {%- else %}😟|Jobs scarce{% endif -%}
+{%- endmacro %}
+{% macro arrow(now, before) -%}
+  {%- if now > before %}<span class="sb-arrow" title="up since last quarter">▲</span>
+  {%- elif now < before %}<span class="sb-arrow" title="down since last quarter">▼</span>
+  {%- else %}<span class="sb-arrow" title="unchanged since last quarter">▬</span>{% endif -%}
+{%- endmacro %}
+{% macro feeling(who, measure, mood, value, before) -%}
+  {%- set parts = mood.split("|") -%}
+  <div>
+    <div class="sb-face {{ 'text-primary' if measure == 'Unemployment' else ('text-danger' if value > 3.5 else ('text-warning-emphasis' if value > 2.5 else ('text-success' if value >= 1.5 else 'text-primary'))) }}">{{ parts[0] }}</div>
+    <div class="sb-who">{{ who }}</div>
+    <div class="sb-lbl">{{ measure }}</div>
+    <div class="sb-num">{{ "%.2f" | format(value) }}% {{ arrow(value, before) }}</div>
+    <div class="sb-cap">{{ parts[1] }}</div>
+  </div>
+{%- endmacro %}
+{% macro card(name, run, score, standing, side) -%}
+  {%- set now = run[-1] -%}
+  {%- set before = run[-2] -%}
+  <div class="col-12 col-md-6">
+    <div class="sb-card sb-{{ side }}{% if standing == 'Ahead' %} sb-lead{% endif %}">
+      <div class="sb-top">
+        <span>{{ name }}</span>
+        <span class="badge {{ 'text-bg-success' if standing == 'Ahead' else ('text-bg-danger' if standing == 'Behind' else 'text-bg-secondary') }}">{% if standing == 'Ahead' %}👑 {% endif %}{{ standing }}</span>
+      </div>
+      <div class="sb-feel">
+        {{ feeling("🛒 Shoppers", "📊 Inflation", shoppers(headline(now)), headline(now), headline(before)) }}
+        {{ feeling("👷 Workers", "Unemployment", workers(now.unemployment), now.unemployment, before.unemployment) }}
+      </div>
+      <div class="sb-rate"><span class="sb-lbl">Last policy rate set</span><span class="sb-num">{{ "%.2f" | format(now.rate) }}%</span></div>
+      <div class="sb-pop">👥 {{ "{:,}".format(now.population) }} people</div>
+      <div class="sb-score"><span class="sb-lbl">Score</span><span class="sb-big">{{ "%.3f" | format(score) }}</span></div>
+      <p class="small mb-0">Average economic penalty so far; lower is better.</p>
+      {% set costs = namespace(prices=0.0, jobs=0.0, moves=0.0) %}
+      {% for quarter in run %}
+        {% set move = quarter.rate - run[loop.index0 - 1].rate if loop.index0 else 0.0 %}
+        {% set costs.prices = costs.prices + (headline(quarter) - 2.0) ** 2 %}
+        {% set costs.jobs = costs.jobs + 0.5 * (quarter.unemployment - 4.5) ** 2 %}
+        {% set costs.moves = costs.moves + 0.25 * move ** 2 %}
+      {% endfor %}
+      <p class="small mb-0">Score breakdown: prices (inflation misses) {{ "%.3f" | format(costs.prices / (run | length)) }} · jobs (unemployment misses) {{ "%.3f" | format(costs.jobs / (run | length)) }} · moves (policy-rate changes) {{ "%.3f" | format(costs.moves / (run | length)) }}</p>
+    </div>
+  </div>
+{%- endmacro %}
+{% set played = (history | length) - 10 %}
+{# The knot is at 50% when tied and reaches an end at 20% better or worse than
+   the rule, so silver's 10% line is halfway to each end. #}
+{% set lead = 0 if rule_score == 0 else (rule_score - player_score) / rule_score / 0.2 %}
+{% set knot = 50 + 50 * ([[lead, 1] | min, -1] | max) %}
+{% if player_score < rule_score %}{% set you, rule = "Ahead", "Behind" %}
+{% elif player_score > rule_score %}{% set you, rule = "Behind", "Ahead" %}
+{% else %}{% set you, rule = "Tied", "Tied" %}{% endif %}
+<style>
+  .sb { display: grid; gap: .75rem; margin: 1rem 0 1.5rem; }
+  .sb-term { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .5rem; font-weight: 600; }
+  .sb-dots { display: flex; flex-wrap: wrap; gap: .3rem; }
+  .sb-dots i { width: .85rem; height: .85rem; border-radius: 50%; display: block; border: 1px solid var(--bs-border-color); background: var(--bs-secondary-bg); }
+  .sb-dots i.done { background: #36a2eb; border-color: #36a2eb; }
+  .sb-card { height: 100%; border-radius: .75rem; padding: 1rem; display: grid; gap: .75rem; }
+  .sb-you { background: rgba(54, 162, 235, .13); }
+  .sb-rule { background: rgba(255, 159, 64, .16); }
+  .sb-lead { outline: 3px solid #f5b400; }
+  .sb-top { flex-wrap: wrap; gap: .5rem; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 1.15rem; }
+  .sb-feel { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+  .sb-feel > div { min-width: 0; background: var(--bs-body-bg); border-radius: .5rem; padding: .5rem; text-align: center; }
+  .sb-face { font-size: 2.25rem; line-height: 1.15; }
+  .sb-who { font-weight: 600; }
+  .sb-lbl { font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; color: var(--bs-secondary-color); }
+  .sb-num { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .sb-cap { font-size: .85rem; }
+  .sb-score, .sb-rate { display: flex; justify-content: space-between; align-items: baseline; }
+  .sb-explain { font-size: .9rem; color: var(--bs-secondary-color); }
+  .sb-big { font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .sb-arrow { color: var(--bs-secondary-color); }
+  .sb-tug { position: relative; height: .9rem; border-radius: 1rem; background: linear-gradient(90deg, #ff9f40, #36a2eb); }
+  .sb-tug span { position: absolute; top: -.3rem; width: .3rem; height: 1.5rem; margin-left: -.15rem; border-radius: .2rem; background: var(--bs-body-color); }
+  .sb-ends { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0 .5rem; font-size: .8rem; color: var(--bs-secondary-color); }
+  .sb-ends span:nth-child(2) { order: 3; width: 100%; text-align: center; }
+  .sb-verdict { border: 2px dashed var(--bs-border-color); border-radius: .75rem; padding: .75rem 1rem; }
+  .sb-verdict.sb-over { border-style: solid; border-color: #f5b400; font-size: 1.1rem; }
+</style>
+<div class="sb">
+  <div class="sb-term">
+    {% if played == 0 %}<span>Your term: {{ term }} quarters. Set your first policy rate below.</span>
+    {% elif played < term %}<span>Your term: quarter {{ played }} of {{ term }}</span>
+    {% else %}<span>Your term is over.</span>{% endif %}
+    <span class="sb-dots">{% for n in range(term) %}<i{% if n < played %} class="done"{% endif %}></i>{% endfor %}</span>
+  </div>
+  <div class="row g-3">
+    {{ card("🤖 Taylor rule", rule_history, rule_score, rule, "rule") }}
+    {{ card("🏛️ You", history, player_score, you, "you") }}
+  </div>
+  {% set gap = namespace(prices=0.0, jobs=0.0, moves=0.0) %}
+  {% for run, sign in [(history, 1), (rule_history, -1)] %}
+    {% for quarter in run %}
+      {% set move = quarter.rate - run[loop.index0 - 1].rate if loop.index0 else 0.0 %}
+      {% set gap.prices = gap.prices + sign * (headline(quarter) - 2.0) ** 2 / (run | length) %}
+      {% set gap.jobs = gap.jobs + sign * 0.5 * (quarter.unemployment - 4.5) ** 2 / (run | length) %}
+      {% set gap.moves = gap.moves + sign * 0.25 * move ** 2 / (run | length) %}
+    {% endfor %}
+  {% endfor %}
+  {% if player_score == rule_score %}
+  <p class="sb-explain mb-0" id="score-gap" data-lagging="Neither" data-component="">Tied on score. Compare inflation misses, unemployment misses and policy-rate moves.</p>
+  {% else %}
+    {% set sign = 1 if player_score > rule_score else -1 %}
+    {% set lagging = "You" if sign == 1 else "Taylor" %}
+    {% set costs = [("inflation misses", sign * gap.prices), ("unemployment misses", sign * gap.jobs), ("policy-rate moves", sign * gap.moves)] | sort(attribute=1) %}
+    {% set disadvantage = costs[-1] %}
+    {% set saving = costs[0] %}
+  <p class="sb-explain mb-0" id="score-gap" data-lagging="{{ lagging }}" data-component="{{ disadvantage[0] }}">
+    <strong>{% if lagging == "You" %}You are behind{% else %}You are ahead{% endif %} by {{ "%.3f" | format((player_score - rule_score) | abs) }} score points.</strong>
+    {{ lagging }}{{ "r" if lagging == "You" else "'s" }} largest cost disadvantage is {{ disadvantage[0] }}: {{ "%.3f" | format(disadvantage[1]) }} more average penalty.
+    {% if saving[1] < 0 %}A lower cost from {{ saving[0] }} offsets {{ "%.3f" | format(-saving[1]) }}, but does not make up the total gap.{% endif %}
+    Compare the three accumulated costs under the same shocks.
+  </p>
+  {% endif %}
+  <div class="sb-explain">🤖 <strong>The Taylor rule</strong> (John Taylor, 1993) moves toward a formula every quarter: <strong>2% + 1.5 × (inflation − 2%) + 0.5 × output gap</strong>, rounded to 0.25, moving at most 0.50 a quarter, kept between 0% and 20%. It faces the same shocks as you.</div>
+  <div>
+    <div class="sb-tug"><span style="left: {{ '%.1f' | format(knot) }}%"></span></div>
+    <div class="sb-ends"><span>◀ Taylor rule winning</span><span>Lower score wins · no fixed grading scale · 0 is ideal; inherited costs keep this run above 0</span><span>You winning ▶</span></div>
+  </div>
+  {% if played >= term %}
+  <div class="sb-verdict sb-over">
+    {% if player_score <= rule_score %}🥇 <strong>Gold</strong> — you matched or beat the Taylor rule.
+    {% elif player_score <= rule_score * 1.1 %}🥈 <strong>Silver</strong> — within 10% of the Taylor rule.
+    {% else %}🥉 <strong>Bronze</strong> — the Taylor rule did better.{% endif %}
+    Press <em>Start again from the inherited economy</em> to serve another term.
+  </div>
+  {% else %}
+  <div class="sb-verdict">After quarter {{ term }}, your medal: 🥇 gold if you match or beat the Taylor rule, 🥈 silver if you are within 10% of it, 🥉 bronze otherwise.</div>
+  {% endif %}
+</div>

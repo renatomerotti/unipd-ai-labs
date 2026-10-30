@@ -1,0 +1,19 @@
+{# Ready-made for Phase 4. Do not change it.
+Needs labels, player_inflation (headline), rule_inflation (headline), player_core. #}
+<section class="mb-4" aria-label="Inflation chart"><h2 class="h4">The path of prices</h2>
+<div style="height: 18rem; position: relative"><canvas id="inflationChart" aria-label="Your inflation, Taylor inflation, your core inflation and 2% target" role="img">Inflation and core inflation over time.</canvas></div></section>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+const labels = {{ labels | tojson }};
+const playerInflation = {{ player_inflation | tojson }};
+const ruleInflation = {{ rule_inflation | tojson }};
+const playerCore = {{ player_core | tojson }};
+new Chart(document.getElementById("inflationChart"), {
+  type: "line", data: {labels, datasets: [
+    {label: "📊 Your inflation", data: playerInflation, borderColor: "#b4232a", pointRadius: 2},
+    {label: "🤖 Taylor inflation", data: ruleInflation, borderColor: "#2e7d6b", pointRadius: 1},
+    {label: "🧺 Your core inflation", data: playerCore, borderColor: "#475569", borderDash: [4, 4], pointRadius: 1},
+    {label: "Inflation target (2%)", data: labels.map(() => 2), borderColor: "#9a6700", borderDash: [6, 6], pointRadius: 0}
+  ]}, options: {responsive: true, maintainAspectRatio: false, interaction: {mode: "index", intersect: false}, scales: {y: {title: {display: true, text: "Annual inflation (%)"}}}}
+});
+</script>

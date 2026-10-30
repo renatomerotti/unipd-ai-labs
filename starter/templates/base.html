@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    #rate { max-width: 7rem; }
+    body { overflow-wrap: anywhere; }
+    .container { min-width: 0; }
+    .table-responsive { max-width: 100%; }
+    .navbar .container { flex-wrap: wrap; }
+    th, td { font-variant-numeric: tabular-nums; }
+    @media (max-width: 575px) {
+      .economy-record thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+      .economy-record tbody tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: .75rem; border: 1px solid #dee2e6; border-radius: .5rem; }
+      .economy-record td { display: flex; flex-direction: column; padding: .5rem; border: 0; }
+      .economy-record td::before { content: attr(data-label); font-size: .75rem; font-weight: 600; }
+      .economy-record td:first-child { grid-column: 1 / -1; font-weight: 700; }
+      .mr table { font-size: .8rem; }
+      .mr th, .mr td { padding: .3rem; }
+    }
+  </style>
+  <title>{% block title %}Central Bank Game{% endblock %}</title>
+  <link rel="icon" href="data:,">
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg bg-body-tertiary">
+    <div class="container">
+      <a class="navbar-brand" href="/">Central Bank Game</a>
+      <div class="navbar-nav">
+        <a class="nav-link" href="/">Home</a>
+        <a class="nav-link" href="/economy">Economy</a>
+        <a class="nav-link" href="/rules">Rule lab</a>
+      </div>
+    </div>
+  </nav>
+  <main class="container py-4">
+    {% block content %}{% endblock %}
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

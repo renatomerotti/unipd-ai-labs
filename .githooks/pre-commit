@@ -1,0 +1,27 @@
+#!/bin/sh
+# Refuse to commit secrets or local tooling configuration.
+# Enable with:  git config core.hooksPath .githooks
+
+fail() {
+  echo "" >&2
+  echo "BLOCKED: $1" >&2
+  shift
+  printf '%s\n' "$@" | sed 's/^/  /' >&2
+  echo "" >&2
+  echo "This repository is public. An API key committed here is public forever," >&2
+  echo "even if deleted afterwards. Unstage it, and rotate the key if it is real." >&2
+  exit 1
+}
+
+# 1. Filenames that should never be committed.
+PATHS='(^|/)\.env($|\.)|\.(key|pem)$|^\.agents/|^\.claude/|(^|/)\.opencode/'
+STAGED_PATHS=$(git diff --cached --name-only | grep -E "$PATHS")
+[ -n "$STAGED_PATHS" ] && fail "these files are secrets or local tooling config:" "$STAGED_PATHS"
+
+# 2. Secrets pasted inside a file the filename check would let through.
+#    OpenRouter keys, OpenAI-style keys, GitHub tokens, and AWS access keys.
+SECRETS='sk-or-v1-[A-Za-z0-9_-]{16}|sk-[A-Za-z0-9]{32}|gh[pousr]_[A-Za-z0-9]{20}|AKIA[0-9A-Z]{16}'
+STAGED_HITS=$(git diff --cached --unified=0 | grep -E '^\+' | grep -Eo "$SECRETS")
+[ -n "$STAGED_HITS" ] && fail "a secret appears inside a staged file:" "$(printf '%s' "$STAGED_HITS" | cut -c1-24 | sed 's/$/…/')"
+
+exit 0

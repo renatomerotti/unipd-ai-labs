@@ -1,0 +1,46 @@
+{# Ready-made for Phase 5. Do not change it. Needs a, b, taylor_term, taylor_term_score, my_term, my_term_score. #}
+{% set taylor_worst = taylor_term[10:] | map(attribute="unemployment") | max %}
+{% set my_worst = my_term[10:] | map(attribute="unemployment") | max %}
+{% set mission_met = my_term_score < taylor_term_score and my_worst <= taylor_worst %}
+<style>
+  .mr { margin: 2.5rem 0 1rem; padding: 1rem; border-radius: .75rem; background: var(--bs-tertiary-bg); }
+  .mr-formula { font-weight: 600; }
+  .mr-form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: .75rem; margin: 1rem 0; }
+  .mr-form input { max-width: 7rem; }
+  .mr td, .mr th { font-variant-numeric: tabular-nums; }
+  .mr-verdict { border: 2px dashed var(--bs-border-color); border-radius: .75rem; padding: .75rem 1rem; }
+  .mr-verdict.mr-win { border-style: solid; border-color: #f5b400; font-size: 1.1rem; }
+</style>
+<section class="mr" id="my-rule">
+  <h2 class="h4">🧪 Your rule against Taylor's</h2>
+  <p class="fw-semibold">The board asks: is there a better rule than Taylor's? Find the lowest score without a harsher worst quarter.</p>
+  <h3 class="h5">Twenty quarters under each rule</h3>
+  <p>Both rules play the same twenty quarters from the economy you inherited, with the same shocks. Your own game on the Economy page does not change.</p>
+  <p class="mr-formula">Policy rate = 2% + <strong>A</strong> × (inflation − 2%) + <strong>B</strong> × output gap</p>
+  <p><strong>A</strong>: how hard the rule reacts when inflation is above 2% (Taylor: 1.5; bigger = tougher on prices).<br><strong>B</strong>: how hard it reacts when the economy runs hot or cold (Taylor: 0.5).</p>
+  <p>Each rule moves toward its formula in steps of 0.25, at most 0.50 a quarter.</p>
+  <form class="mr-form" method="get" action="/rules#my-rule">
+    <div><label class="form-label" for="a"><strong>A</strong> · response to inflation</label>
+      <input class="form-control" id="a" name="a" type="number" step="0.1" min="0" max="5" value="{{ '%.2f' | format(a) }}" required></div>
+    <div><label class="form-label" for="b"><strong>B</strong> · response to the output gap</label>
+      <input class="form-control" id="b" name="b" type="number" step="0.1" min="0" max="5" value="{{ '%.2f' | format(b) }}" required></div>
+    <button class="btn btn-primary" type="submit">Try my rule</button>
+    <a class="btn btn-outline-secondary" href="/rules#my-rule">Back to Taylor's numbers</a>
+  </form>
+  <div class="table-responsive"><table class="table mb-3">
+    <thead><tr><th>Rule</th><th>A</th><th>B</th><th>Score (lower wins)</th><th>Worst unemployment (lower is kinder)</th><th>Mission</th></tr></thead>
+    <tbody>
+      <tr><td>🤖 Taylor rule</td><td>1.50</td><td>0.50</td><td>{{ "%.3f" | format(taylor_term_score) }}</td><td>{{ "%.2f" | format(taylor_worst) }}%</td><td>❌</td></tr>
+      <tr><td>🧪 My rule</td><td>{{ "%.2f" | format(a) }}</td><td>{{ "%.2f" | format(b) }}</td><td>{{ "%.3f" | format(my_term_score) }}</td><td>{{ "%.2f" | format(my_worst) }}%</td><td>{{ '✅' if mission_met else '❌' }}</td></tr>
+    </tbody>
+  </table></div>
+  {% if mission_met %}
+  <div class="mr-verdict mr-win">✅ Mission met: a lower score than Taylor, and no harsher worst quarter. Put it on the board.</div>
+  {% elif my_term_score < taylor_term_score %}
+  <div class="mr-verdict">❌ A lower score, but a harsher worst quarter ({{ "%.2f" | format(my_worst) }}% against {{ "%.2f" | format(taylor_worst) }}%): it costs more jobs. Try a smaller A.</div>
+  {% elif my_term_score == taylor_term_score %}
+  <div class="mr-verdict">Tied on score. To meet the mission, find a lower score with no harsher worst quarter.</div>
+  {% else %}
+  <div class="mr-verdict">❌ Taylor still wins on score.</div>
+  {% endif %}
+</section>

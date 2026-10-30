@@ -1,0 +1,20 @@
+{# Ready-made for Phase 2. Do not change it.
+Needs current, previous, current_headline, previous_headline. #}
+{% macro direction(now, before) -%}{% if now > before %}▲{% elif now < before %}▼{% else %}▬{% endif %}{%- endmacro %}
+<section class="prices mb-4" aria-label="Prices this quarter">
+  <h2 class="h4 {{ 'text-danger' if current_headline > 3.5 else ('text-warning-emphasis' if current_headline > 2.5 else ('text-success' if current_headline >= 1.5 else 'text-primary')) }}">📊 Inflation <strong>{{ "%.2f" | format(current_headline) }}%</strong> <small>{{ direction(current_headline, previous_headline) }}</small></h2>
+  <div class="row g-2">
+  {% for name, label, subtitle, icon, colour, weight in [
+    ("food", "Food", "Groceries", "🍞", "#9a6700", "20%"),
+    ("fuel", "Fuel", "Gasoline and diesel", "⛽", "#b4232a", "4%"),
+    ("energy", "Energy", "Electricity and gas", "💡", "#856600", "6%"),
+    ("core", "Core inflation", "Everything except food, fuel and energy", "🧺", "#475569", "70%")] %}
+    <div class="col-6 col-md-3"><div class="border rounded p-3 h-100" style="border-top: 4px solid {{ colour }} !important; color: {{ colour }}">
+      <h3 class="h6">{{ icon }} {{ label }}</h3>
+      <p class="small mb-1" style="min-height: 3rem">{{ subtitle }}</p>
+      <strong class="fs-4">{{ "%.2f" | format(current[name]) }}%</strong> <span aria-label="change since last quarter">{{ direction(current[name], previous[name]) }}</span>
+      <p class="small mb-0">{{ weight }} of inflation</p>
+    </div></div>
+  {% endfor %}
+  </div>
+</section>

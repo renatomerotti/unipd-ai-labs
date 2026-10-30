@@ -1,0 +1,19 @@
+{# Ready-made for Phase 4. Do not change it. Uses history and rule_history. #}
+<section class="mb-4" id="policy-comparison" aria-label="Past policy choices">
+  <h2 class="h4">Your choices and Taylor's</h2>
+  <p class="small text-body-secondary">The policy rate recorded in a row affects the following quarter. Only decisions already played are shown.</p>
+  {% if history | length <= 10 %}
+  <p>No policy decisions yet. Your first choice will appear here beside Taylor's.</p>
+  {% else %}
+  <div class="table-responsive" tabindex="0" role="region" aria-label="Past policy choices table">
+    <table class="table table-sm align-middle">
+      <thead><tr><th>Quarter</th><th>Your policy rate %</th><th>Taylor policy rate %</th></tr></thead>
+      <tbody>
+      {% for quarter in history[10:] %}
+        <tr data-policy-quarter="{{ quarter.label }}"><td>{{ quarter.label }}</td><td>{{ "%.2f" | format(quarter.rate) }}</td><td>{{ "%.2f" | format(rule_history[loop.index0 + 10].rate) }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</section>
